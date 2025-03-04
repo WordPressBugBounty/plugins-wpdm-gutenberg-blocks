@@ -10,7 +10,7 @@
  * Plugin URI: https://www.wpdownloadmanager.com/download/gutenberg-blocks/
  * Description: Gutenberg Blocks for WordPress Download Manager
  * Author: WordPress Download Manager
- * Version:  2.3.0
+ * Version:  2.4.0
  * Author URI: https://www.wpdownloadmanager.com/
  */
 namespace WPDM\Block;
@@ -120,8 +120,8 @@ class Blocks
             // Styles.
             $deps = ['wp-edit-blocks'];
             if(!defined('ATTIRE_BLOCKS_VERSION')) {
-                wp_register_style('wpdm-gb-bootstrap', plugins_url('/download-manager/assets/bootstrap/css/bootstrap.min.css'));
-                $deps[] = 'wpdm-gb-bootstrap';
+                wp_register_style('wpdm-gb-styles', plugins_url('/download-manager/assets/css/front.min.css'));
+                $deps[] = 'wpdm-gb-styles';
             }
             wp_enqueue_style(
                 'wpdm-gutenberg-blocks-editor-css', // Handle.

@@ -133,6 +133,7 @@ class Packages{
                     $attributes['cat_field'] = 'id';
                 }
             }
+			if(isset($attributes['tag'])) $attributes['tags'] = $attributes['tag'];
             return "<section class='__wpdm_gb_section __wpdm_gb_packages'>".WPDM()->package->shortCodes->packages($attributes)."</section>";
         }
         else
