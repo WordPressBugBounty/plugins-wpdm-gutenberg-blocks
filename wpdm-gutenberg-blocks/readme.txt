@@ -1,4 +1,4 @@
-=== Gutenberg Blocks by WordPress Download Manager ===
+=== Editor Blocks by Download Manager ===
 Contributors: w3eden, codename065, shahriar0822, shimo16ab, shafayat-alam
 Donate link:
 Tags: gutenberg, blocks, gutenberg blocks, document management plugin, download manager, file manager, download protection
@@ -8,12 +8,12 @@ License: GPLv2 or later
 
 
 
-Gutenberg Blocks by WordPress Download Manager is the collection of beautiful ready-to-use custom blocks for the new Gutenberg block editor.
+Editor Blocks by Download Manager is the collection of beautiful ready-to-use custom blocks for the new Gutenberg block editor.
 
 
 == Description ==
 
-Gutenberg Blocks by WordPress Download Manager is the collection of beautiful ready-to-use custom blocks for the new Gutenberg block editor.  Primarily, this plugin covers various download manager features like embedding package or category within a page/post. Additionally, it includes lots of generic UI blocks to give you more customizability option with your page design.
+Editor Blocks by Download Manager is the collection of beautiful ready-to-use custom blocks for the new Gutenberg block editor.  Primarily, this plugin covers various download manager features like embedding package or category within a page/post. Additionally, it includes lots of generic UI blocks to give you more customizability option with your page design.
 
 = WPDM Blocks =
 * Package - a block to show a download/file/package
