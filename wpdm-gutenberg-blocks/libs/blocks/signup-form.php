@@ -23,7 +23,8 @@ class SigupForm{
         $options = [[ "label" =>  "Default Role", "value"  => ""]];
         $role_ids = get_option("__wpdm_signup_roles", array());
         foreach ($role_ids as $role){
-            $options[] = array("label" => $roles[$role], "value" => $role);
+            if(isset($roles[$role]))
+                $options[] = array("label" => $roles[$role], "value" => $role);
         }
         ?>
         <script>

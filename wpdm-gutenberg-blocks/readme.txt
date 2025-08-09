@@ -3,7 +3,7 @@ Contributors: w3eden, codename065, shahriar0822, shimo16ab, shafayat-alam
 Donate link:
 Tags: gutenberg, blocks, gutenberg blocks, document management plugin, download manager, file manager, download protection
 Requires at least: 5
-Tested up to: 6.7
+Tested up to: 6.8
 License: GPLv2 or later
 
 
@@ -37,6 +37,10 @@ Please install [Attire Blocks](https://wordpress.org/plugins/attire-blocks/) for
 
 
 == Changelog ==
+
+= 2.4.2 - 2025.08.09 =
+🐞 Fixed an issue with the Signup form block
+✅ Enhanced System Optimization and Compatibility Assurance Update
 
 = 2.4.0 - 2025.03.04 =
 ✅ Enhanced System Optimization and Compatibility Assurance Update

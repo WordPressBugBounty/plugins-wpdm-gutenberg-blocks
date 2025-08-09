@@ -10,7 +10,7 @@
  * Plugin URI: https://www.wpdownloadmanager.com/download/gutenberg-blocks/
  * Description: Editor Blocks for Download Manager
  * Author: WordPress Download Manager
- * Version:  2.4.1
+ * Version:  2.4.2
  * Author URI: https://www.wpdownloadmanager.com/
  */
 namespace WPDM\Block;
