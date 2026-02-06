@@ -1,0 +1,104 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/datatable",
+  "version": "3.0.0",
+  "title": "All Downloads Table",
+  "category": "wpdm-blocks",
+  "description": "Display all downloads in a searchable and sortable table.",
+  "keywords": [
+    "download",
+    "table",
+    "datatable",
+    "list",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "login": {
+      "type": "boolean",
+      "default": false
+    },
+    "categories": {
+      "type": "string",
+      "default": ""
+    },
+    "include_children": {
+      "type": "boolean",
+      "default": false
+    },
+    "operator": {
+      "type": "string",
+      "default": "IN"
+    },
+    "xcats": {
+      "type": "string",
+      "default": ""
+    },
+    "tag": {
+      "type": "string",
+      "default": ""
+    },
+    "tag__not_in": {
+      "type": "string",
+      "default": ""
+    },
+    "author": {
+      "type": "string",
+      "default": ""
+    },
+    "author__not_in": {
+      "type": "string",
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "default": ""
+    },
+    "desc": {
+      "type": "string",
+      "default": ""
+    },
+    "items_per_page": {
+      "type": "string",
+      "default": "10"
+    },
+    "toolbar": {
+      "type": "string",
+      "default": "1"
+    },
+    "paging": {
+      "type": "string",
+      "default": "1"
+    },
+    "cols": {
+      "type": "string",
+      "default": ""
+    },
+    "colheads": {
+      "type": "string",
+      "default": ""
+    },
+    "orderby": {
+      "type": "string",
+      "default": "date"
+    },
+    "order": {
+      "type": "string",
+      "default": "DESC"
+    },
+    "async": {
+      "type": "string",
+      "default": "1"
+    },
+    "template": {
+      "type": "string",
+      "default": "link-template-panel"
+    }
+  }
+}

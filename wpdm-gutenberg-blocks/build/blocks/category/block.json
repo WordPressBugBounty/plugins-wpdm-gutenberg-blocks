@@ -1,0 +1,76 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/category",
+  "version": "3.0.0",
+  "title": "Categories",
+  "category": "wpdm-blocks",
+  "description": "Display packages from selected Download Manager categories.",
+  "keywords": [
+    "download",
+    "category",
+    "categories",
+    "taxonomy",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "cats": {
+      "type": "string",
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "default": ""
+    },
+    "desc": {
+      "type": "string",
+      "default": ""
+    },
+    "items_per_page": {
+      "type": "string",
+      "default": "10"
+    },
+    "toolbar": {
+      "type": "string",
+      "default": "1"
+    },
+    "paging": {
+      "type": "string",
+      "default": "1"
+    },
+    "cols": {
+      "type": "string",
+      "default": "1"
+    },
+    "colspad": {
+      "type": "string",
+      "default": "1"
+    },
+    "colsphone": {
+      "type": "string",
+      "default": "1"
+    },
+    "orderby": {
+      "type": "string",
+      "default": ""
+    },
+    "order": {
+      "type": "string",
+      "default": ""
+    },
+    "async": {
+      "type": "string",
+      "default": "1"
+    },
+    "template": {
+      "type": "string",
+      "default": "link-template-panel"
+    }
+  }
+}

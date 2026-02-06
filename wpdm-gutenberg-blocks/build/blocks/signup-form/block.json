@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/signup-form",
+  "version": "3.0.0",
+  "title": "Signup Form",
+  "category": "wpdm-blocks",
+  "description": "Display a user registration form with role assignment.",
+  "keywords": [
+    "download",
+    "signup",
+    "register",
+    "form",
+    "user",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "role": {
+      "type": "string",
+      "default": "subscriber"
+    },
+    "logo": {
+      "type": "string",
+      "default": ""
+    },
+    "note_before": {
+      "type": "string",
+      "default": ""
+    },
+    "note_after": {
+      "type": "string",
+      "default": ""
+    },
+    "social_only": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

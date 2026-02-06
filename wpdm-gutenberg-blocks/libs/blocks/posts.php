@@ -268,7 +268,7 @@ class Posts{
     }
 
     function templates(){
-        $files = scandir(__WPDM_GBDIR__.'/blocks/tpls/post/');
+        $files = scandir(__WPDM_GBDIR__.'/libs/blocks/tpls/post/');
         $templates = array();
         foreach ($files as $file){
             if(strpos($file, '.php')){

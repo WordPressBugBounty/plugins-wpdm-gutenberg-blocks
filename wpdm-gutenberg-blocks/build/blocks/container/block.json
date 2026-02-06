@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "custom-block/container",
+  "version": "3.0.0",
+  "title": "Custom Container",
+  "category": "common",
+  "description": "A flexible container block for grouping other blocks.",
+  "keywords": [
+    "container",
+    "wrapper",
+    "section",
+    "group"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "align": [
+      "wide",
+      "full"
+    ],
+    "anchor": true,
+    "html": false,
+    "className": true
+  },
+  "attributes": {
+    "content": {
+      "type": "string"
+    }
+  }
+}

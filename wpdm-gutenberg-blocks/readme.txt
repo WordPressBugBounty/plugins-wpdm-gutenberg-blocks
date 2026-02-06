@@ -38,6 +38,21 @@ Please install [Attire Blocks](https://wordpress.org/plugins/attire-blocks/) for
 
 == Changelog ==
 
+= 3.0.1 - 2026.01.26 =
+🐞 Fixed REST API validation error for "login" attribute in datatable and packages blocks
+🐞 Fixed template path issue causing "Path cannot be empty" error
+🐞 Fixed scandir path error in posts block template discovery
+
+= 3.0.0 - 2026.01.26 =
+✅ Completely rebuilt Table Builder UI with modern React-based interface
+✅ Replaced jQuery UI sortable with react-sortablejs for drag-and-drop
+✅ Added react-select for improved multi-select field picker in Table Builder
+✅ New card-based column list with drag handles and hover states
+🐞 Fixed "Invalid parameter(s): attributes" error when inserting blocks
+🐞 Fixed blocks becoming unselectable after insertion
+🐞 Fixed undefined array key warnings for cols and colheads attributes
+🐞 Fixed CSS specificity issues where WordPress admin styles overrode component styles
+
 = 2.4.2 - 2025.08.09 =
 🐞 Fixed an issue with the Signup form block
 ✅ Enhanced System Optimization and Compatibility Assurance Update

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/package",
+  "version": "3.0.0",
+  "title": "Package",
+  "category": "wpdm-blocks",
+  "description": "Display a single Download Manager package.",
+  "keywords": [
+    "download",
+    "package",
+    "file",
+    "single",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "packageID": {
+      "type": "integer",
+      "default": 0
+    },
+    "packageTitle": {
+      "type": "string",
+      "default": "Select Package"
+    },
+    "template": {
+      "type": "string",
+      "default": "link-template-panel"
+    }
+  }
+}

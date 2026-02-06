@@ -21,6 +21,10 @@ class Packages{
 
         register_block_type( 'download-manager/packages', array(
             'attributes'      => array(
+                'login' => array(
+                    'type'    => 'boolean',
+                    'default' => false
+                ),
                 'search' => array(
                     'type'    => 'string',
                     'default' => ""
@@ -133,11 +137,10 @@ class Packages{
                     $attributes['cat_field'] = 'id';
                 }
             }
-			if(isset($attributes['tag'])) $attributes['tags'] = $attributes['tag'];
             return "<section class='__wpdm_gb_section __wpdm_gb_packages'>".WPDM()->package->shortCodes->packages($attributes)."</section>";
         }
         else
-            return Messages::info("Block is available with the pro version only!");
+            return "<div class='w3eden'><div class='alert alert-info'>Block is available with the pro version only!</div></div>";
     }
 
 }

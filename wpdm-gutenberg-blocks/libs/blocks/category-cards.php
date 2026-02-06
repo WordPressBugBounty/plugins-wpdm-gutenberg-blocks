@@ -33,10 +33,6 @@ class CategoryBlocks{
                     'type'    => 'string',
                     'default' => 'rgb(0, 115, 255)'
                 ),
-                'border_color' => array(
-                    'type'    => 'string',
-                    'default' => 'rgb(0, 115, 255)'
-                ),
                 'hover_color'      => array(
                     'type'      => 'string',
                     'default'   => 'rgb(0, 115, 255)'
@@ -61,9 +57,9 @@ class CategoryBlocks{
         global $wpdm_archive_page;
         if(shortcode_exists('wpdm_category_blocks')){
             $attributes['cats'] = trim($attributes['cats'], ",");
-            return "<section class='__wpdm_gb_category_cards'>".do_shortcode("[wpdm_category_blocks categories='{$attributes['cats']}' cols='{$attributes['cols']}' border_color='{$attributes['border_color']}' button_color='{$attributes['button_color']}' hover_color='{$attributes['hover_color']}' container='{$attributes['className']}']")."</section>";
+            return "<section class='__wpdm_gb_category_cards'>".do_shortcode("[wpdm_category_blocks categories='{$attributes['cats']}' cols='{$attributes['cols']}' button_color='{$attributes['button_color']}' hover_color='{$attributes['hover_color']}' container='{$attributes['className']}']")."</section>";
         }
-        return Messages::info("<div style='padding: 10px 0'>This block requires <a target='_blank' href='https://www.wpdownloadmanager.com/download/wpdm-directory-add-on/'><strong>WPDM - Directory Add-on</strong></a></div>", -1);
+        return "<div class='w3eden'><div class='alert alert-info' style='padding: 10px'>This block requires <a target='_blank' href='https://www.wpdownloadmanager.com/download/wpdm-directory-add-on/'><strong>WPDM - Directory Add-on</strong></a></div></div>";
     }
 
 }

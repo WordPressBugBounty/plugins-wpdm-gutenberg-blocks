@@ -1,0 +1,130 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/call2action",
+  "version": "3.0.0",
+  "title": "Call To Action",
+  "category": "wpdm-blocks",
+  "description": "Create eye-catching call-to-action sections with customizable backgrounds.",
+  "keywords": [
+    "cta",
+    "call to action",
+    "banner",
+    "jumbotron",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true,
+    "color": {
+      "background": false,
+      "text": false
+    }
+  },
+  "attributes": {
+    "actionType": {
+      "type": "string",
+      "default": "button"
+    },
+    "title": {
+      "type": "array",
+      "source": "children",
+      "selector": ".title"
+    },
+    "alignment": {
+      "type": "string",
+      "default": "center"
+    },
+    "titleFontSize": {
+      "type": "string",
+      "default": "20"
+    },
+    "textFontSize": {
+      "type": "string",
+      "default": "13"
+    },
+    "buttonText": {
+      "type": "array",
+      "source": "children",
+      "selector": "a",
+      "default": "Call To Action"
+    },
+    "buttonStyle": {
+      "type": "string",
+      "default": "btn btn-primary btn-lg"
+    },
+    "buttonSize": {
+      "type": "string",
+      "default": "btn-lg"
+    },
+    "link": {
+      "type": "string",
+      "source": "attribute",
+      "selector": "a",
+      "attribute": "href"
+    },
+    "content": {
+      "type": "array",
+      "source": "children",
+      "selector": ".content"
+    },
+    "buttonTextColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "buttonBG": {
+      "type": "string",
+      "default": "#333333"
+    },
+    "ctaBG": {
+      "type": "string",
+      "default": "#E9ECEF"
+    },
+    "ctaBGx": {
+      "type": "string",
+      "default": "#E9ECEF"
+    },
+    "ctaBGAlpha": {
+      "type": "string",
+      "default": "50"
+    },
+    "bgCS1": {
+      "type": "string",
+      "default": "0"
+    },
+    "bgCS2": {
+      "type": "string",
+      "default": "100"
+    },
+    "gradAngle": {
+      "type": "string",
+      "default": "45"
+    },
+    "ctaBGImage": {
+      "type": "string",
+      "default": null
+    },
+    "ctaBGSize": {
+      "type": "string",
+      "default": "bg-cover"
+    },
+    "ctaBGRepeat": {
+      "type": "string",
+      "default": "bg-no-repeat"
+    },
+    "ctaBGImageID": {
+      "type": "string",
+      "default": null
+    },
+    "titleColor": {
+      "type": "string",
+      "default": "#333333"
+    },
+    "textColor": {
+      "type": "string",
+      "default": "#333333"
+    }
+  }
+}

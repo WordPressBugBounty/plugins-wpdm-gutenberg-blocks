@@ -294,14 +294,14 @@ class DataTable{
         $cols =  explode("|", wpdm_valueof($scparams,  'cols', ['validate' => 'esc_attr']));
 
         ob_start();
-        include Template::locate("datatable.php", WPDM_SRC_DIR.'Package/views');
+        include Template::locate("datatable.php", __DIR__.'/tpls');
         $content = ob_get_clean();
         return $content;
     }
 
 
     function output( $attributes, $content){
-        if(version_compare(WPDM_VERSION, '5.0', '<')) return Messages::info("This  block is only available with <a href='https://www.wpdownloadmanager.com/pricing/' target=_blank >WordPress Download Manager Pro</a>", -1);
+        if(version_compare(WPDM_VERSION, '5.0', '<')) return "<div class='w3eden'><div class='alert alert-info'>This block is only available with <a href='https://www.wpdownloadmanager.com/pricing/' target='_blank'>WordPress Download Manager Pro</a></div></div>";
         if($attributes['cols'] === '') unset($attributes['cols']);
         if($attributes['colheads'] === '') unset($attributes['colheads']);
         return $this->dataTable($attributes);

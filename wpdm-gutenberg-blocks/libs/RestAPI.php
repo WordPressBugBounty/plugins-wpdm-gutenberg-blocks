@@ -8,115 +8,277 @@
 namespace WPDM\Block\libs;
 
 use WPDM\__\Crypt;
-
+use WPDM\Block\traits\DataTableQueryTrait;
 
 class RestAPI
 {
+    use DataTableQueryTrait;
+
+    /**
+     * REST API namespace with version
+     */
+    const API_NAMESPACE = 'wpdm/v1';
+
+    /**
+     * Allowed taxonomies for the categories endpoint
+     */
+    const ALLOWED_TAXONOMIES = ['wpdmcategory', 'wpdmtag', 'category', 'post_tag'];
+
+    /**
+     * Cache TTL constants (in seconds)
+     */
+    const CACHE_TTL_CATEGORIES = 300;      // 5 minutes
+    const CACHE_TTL_TEMPLATES = 3600;      // 1 hour
+    const CACHE_TTL_LAYOUTS = 3600;        // 1 hour
 
     function __construct()
     {
+        add_action('rest_api_init', array($this, 'restAPIInit'));
 
-        add_action( 'rest_api_init', array($this, 'restAPIInit'));
+        // Clear caches when relevant content changes
+        add_action('created_term', [$this, 'clearCategoryCache'], 10, 3);
+        add_action('edited_term', [$this, 'clearCategoryCache'], 10, 3);
+        add_action('delete_term', [$this, 'clearCategoryCache'], 10, 3);
+        add_action('switch_theme', [$this, 'clearTemplateCache']);
     }
 
-    function restAPIInit(){
+    /**
+     * Clear category cache when terms change
+     *
+     * @param int    $term_id  Term ID
+     * @param int    $tt_id    Term taxonomy ID
+     * @param string $taxonomy Taxonomy slug
+     */
+    public function clearCategoryCache($term_id, $tt_id, $taxonomy): void
+    {
+        if (in_array($taxonomy, self::ALLOWED_TAXONOMIES, true)) {
+            delete_transient('wpdm_gb_categories_' . $taxonomy);
+        }
+    }
 
-        //wpdm/v2/alldownloads
-        register_rest_route( 'wpdm', '/alldownloads', array(
+    /**
+     * Clear template caches when theme changes
+     */
+    public function clearTemplateCache(): void
+    {
+        delete_transient('wpdm_gb_link_templates');
+        delete_transient('wpdm_gb_post_templates');
+        delete_transient('wpdm_gb_layouts');
+    }
+
+    /**
+     * Permission callback for editor-only endpoints
+     * Requires user to have edit_posts capability (can use block editor)
+     *
+     * @return bool
+     */
+    function canEditPosts()
+    {
+        return current_user_can('edit_posts');
+    }
+
+    function restAPIInit()
+    {
+        // Register versioned routes (wpdm/v1)
+        $this->registerRoutes(self::API_NAMESPACE);
+
+        // Also register legacy routes (wpdm) for backwards compatibility
+        $this->registerRoutes('wpdm');
+    }
+
+    /**
+     * Register REST routes under a given namespace
+     *
+     * @param string $namespace REST API namespace
+     */
+    private function registerRoutes(string $namespace): void
+    {
+        // Public endpoint - package data respects visibility settings
+        register_rest_route($namespace, '/alldownloads', array(
             'methods' => 'GET',
             'callback' => array($this, 'dataTable'),
             'permission_callback' => '__return_true'
-        ) );
+        ));
 
-        //wpdm/v2/search-package
-        register_rest_route( 'wpdm', '/search-package', array(
+        // Editor-only: search packages for block editor
+        register_rest_route($namespace, '/search-package', array(
             'methods' => 'GET',
             'callback' => array($this, 'searchPackages'),
-            'permission_callback' => '__return_true'
-        ) );
+            'permission_callback' => array($this, 'canEditPosts'),
+            'args' => array(
+                's' => array(
+                    'required' => false,
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'selected' => array(
+                    'required' => false,
+                    'type' => 'integer',
+                    'sanitize_callback' => 'absint',
+                ),
+            ),
+        ));
 
-        //wpdm/v2/link-templates
-        register_rest_route( 'wpdm', '/link-templates', array(
+        // Editor-only: get link templates for block settings
+        register_rest_route($namespace, '/link-templates', array(
             'methods' => 'GET',
             'callback' => array($this, 'linkTemplates'),
-            'permission_callback' => '__return_true'
-        ) );
+            'permission_callback' => array($this, 'canEditPosts')
+        ));
 
-        //wpdm/v2/post-templates
-        register_rest_route( 'wpdm', '/post-templates', array(
+        // Editor-only: get post templates for block settings
+        register_rest_route($namespace, '/post-templates', array(
             'methods' => 'GET',
             'callback' => array($this, 'postTemplates'),
-            'permission_callback' => '__return_true'
-        ) );
+            'permission_callback' => array($this, 'canEditPosts')
+        ));
 
-        //wpdm/v2/categories
-        register_rest_route( 'wpdm', '/categories', array(
+        // Public endpoint - categories are public information
+        register_rest_route($namespace, '/categories', array(
             'methods' => 'GET',
             'callback' => array($this, 'categories'),
-            'permission_callback' => '__return_true'
-        ) );
+            'permission_callback' => '__return_true',
+            'args' => array(
+                'tax' => array(
+                    'required' => false,
+                    'type' => 'string',
+                    'default' => 'wpdmcategory',
+                    'sanitize_callback' => 'sanitize_key',
+                    'validate_callback' => array($this, 'validateTaxonomy'),
+                ),
+            ),
+        ));
 
-        //wpdm/v2/layouts
-        register_rest_route( 'wpdm', '/layouts', array(
+        // Editor-only: get layout files for block editor
+        register_rest_route($namespace, '/layouts', array(
             'methods' => 'GET',
             'callback' => array($this, 'layouts'),
-            'permission_callback' => '__return_true'
-        ) );
+            'permission_callback' => array($this, 'canEditPosts')
+        ));
 
-        //wpdm/v2/getlayout
-        register_rest_route( 'wpdm', '/getlayout', array(
+        // Editor-only: get layout content (with path validation)
+        register_rest_route($namespace, '/getlayout', array(
             'methods' => 'GET',
             'callback' => array($this, 'getlayout'),
-            'permission_callback' => '__return_true'
-        ) );
+            'permission_callback' => array($this, 'canEditPosts'),
+            'args' => array(
+                'layout' => array(
+                    'required' => true,
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+            ),
+        ));
     }
 
+    /**
+     * Validate taxonomy parameter against allowed list
+     *
+     * @param string $value Taxonomy name
+     * @return bool|WP_Error
+     */
+    function validateTaxonomy($value)
+    {
+        if (!in_array($value, self::ALLOWED_TAXONOMIES, true)) {
+            return new \WP_Error(
+                'invalid_taxonomy',
+                sprintf('Taxonomy must be one of: %s', implode(', ', self::ALLOWED_TAXONOMIES)),
+                array('status' => 400)
+            );
+        }
+        return true;
+    }
+
+    /**
+     * Get link templates for block editor (cached)
+     */
     function linkTemplates()
     {
+        $cache_key = 'wpdm_gb_link_templates';
+        $data = get_transient($cache_key);
 
-        $ctpls = WPDM()->packageTemplate->getTemplates("link", true);
-        foreach ($ctpls as $ctpl) {
-            if(!is_array($ctpl)){
-                $tmpdata = file_get_contents($ctpl);
-                $regx = "/WPDM.*Template[\s]*:([^\-\->]+)/";
-                if (preg_match($regx, $tmpdata, $matches)) {
-                    $data[] = array('value' => basename($ctpl), 'label' => $matches[1]);
+        if ($data === false) {
+            $data = array();
+            $ctpls = WPDM()->packageTemplate->getTemplates("link", true);
+
+            foreach ($ctpls as $ctpl) {
+                if (!is_array($ctpl)) {
+                    $tmpdata = file_get_contents($ctpl);
+                    $regx = "/WPDM.*Template[\s]*:([^\-\->]+)/";
+                    if (preg_match($regx, $tmpdata, $matches)) {
+                        $data[] = array(
+                            'value' => sanitize_file_name(basename($ctpl)),
+                            'label' => sanitize_text_field(trim($matches[1]))
+                        );
+                    }
+                } else {
+                    $data[] = array(
+                        'value' => sanitize_text_field($ctpl['ID']),
+                        'label' => sanitize_text_field($ctpl['name'])
+                    );
                 }
-            } else {
-                $data[] = array('value' => $ctpl['ID'], 'label' => $ctpl['name']);
             }
+
+            set_transient($cache_key, $data, self::CACHE_TTL_TEMPLATES);
         }
 
         wp_send_json($data);
         die();
-
     }
 
-    function postTemplates(){
-        $files = scandir(__WPDM_GBDIR__.'/blocks/tpls/post/');
+    /**
+     * Get post templates for block editor
+     */
+    function postTemplates()
+    {
         $templates = array();
-        foreach ($files as $file){
-            if(strpos($file, '.php')){
-                $templates[] = array('value' => $file, 'label' => "Plugin / ".ucfirst(str_replace(".php", "", $file)));
-            }
-        }
 
-        if(file_exists(get_template_directory()."/download-manager/gutenberg/post/")) {
-            $path = get_template_directory() . "/download-manager/gutenberg/post/";
-            $files = scandir($path);
+        // Plugin templates
+        $plugin_path = __WPDM_GBDIR__ . '/blocks/tpls/post/';
+        if (is_dir($plugin_path)) {
+            $files = scandir($plugin_path);
             foreach ($files as $file) {
-                if(strpos($file, '.php')){
-                    $templates[] = array('value' => $file, 'label' => "Plugin / ".ucfirst(str_replace(".php", "", $file)));
+                if (strpos($file, '.php') !== false && $file !== '.' && $file !== '..') {
+                    $safe_file = sanitize_file_name($file);
+                    $label = ucfirst(str_replace(".php", "", $safe_file));
+                    $templates[] = array(
+                        'value' => $safe_file,
+                        'label' => "Plugin / " . sanitize_text_field($label)
+                    );
                 }
             }
         }
 
-        if(file_exists(get_stylesheet_directory()."/gutenberg/layouts/")) {
-            $path = get_stylesheet_directory() . "/gutenberg/layouts/";
-            $files = scandir($path);
+        // Theme templates
+        $theme_path = get_template_directory() . "/download-manager/gutenberg/post/";
+        if (is_dir($theme_path)) {
+            $files = scandir($theme_path);
             foreach ($files as $file) {
-                if(strpos($file, '.php')){
-                    $templates[] = array('value' => $file, 'label' => "Plugin / ".ucfirst(str_replace(".php", "", $file)));
+                if (strpos($file, '.php') !== false && $file !== '.' && $file !== '..') {
+                    $safe_file = sanitize_file_name($file);
+                    $label = ucfirst(str_replace(".php", "", $safe_file));
+                    $templates[] = array(
+                        'value' => $safe_file,
+                        'label' => "Theme / " . sanitize_text_field($label)
+                    );
+                }
+            }
+        }
+
+        // Child theme templates
+        if (get_stylesheet_directory() !== get_template_directory()) {
+            $child_path = get_stylesheet_directory() . "/gutenberg/layouts/";
+            if (is_dir($child_path)) {
+                $files = scandir($child_path);
+                foreach ($files as $file) {
+                    if (strpos($file, '.php') !== false && $file !== '.' && $file !== '..') {
+                        $safe_file = sanitize_file_name($file);
+                        $label = ucfirst(str_replace(".php", "", $safe_file));
+                        $templates[] = array(
+                            'value' => $safe_file,
+                            'label' => "Child Theme / " . sanitize_text_field($label)
+                        );
+                    }
                 }
             }
         }
@@ -124,355 +286,256 @@ class RestAPI
         wp_send_json($templates);
     }
 
-    function searchPackages(){
+    /**
+     * Search packages for block editor
+     *
+     * @param \WP_REST_Request $request REST request object
+     */
+    function searchPackages(\WP_REST_Request $request)
+    {
+        $search = $request->get_param('s') ?: '';
+        $selected_id = $request->get_param('selected') ?: 0;
 
-        $packs = get_posts(array('post_type' => 'wpdmpro','s' => wpdm_query_var('s', 'txt'), 'posts_per_page' => -1));
         $data = array();
-        if(wpdm_query_var('selected', 'int') > 0){
-            $selected = get_post(wpdm_query_var('selected'));
-            $data[] = ['value' => $selected->ID, 'label' => $selected->post_title];
-        }
-        foreach ($packs as $pack){
-            if(wpdm_query_var('selected', 'int') !== $pack->ID)
-                $data[] = array('value' => $pack->ID, 'label' => $pack->post_title);
-        }
-        wp_send_json($data);
-        die();
 
-    }
-
-    function categories(){
-        $tax = wpdm_query_var('tax');
-        $tax = $tax ? $tax : 'wpdmcategory';
-        $cats = get_terms(array('taxonomy' => $tax,
-            'hide_empty' => false));
-        $data = array();
-        foreach ($cats as $cat){
-            $data[] = array('value' => $cat->slug, 'id' => $cat->term_id, 'label' => $cat->name);
-        }
-        wp_send_json($data);
-        die();
-
-    }
-
-    function layouts(){
-        $layouts = array();
-        if(file_exists(get_template_directory()."/gutenberg/layouts/")) {
-            $path = get_template_directory() . "/gutenberg/layouts/";
-            $files = scandir($path);
-            foreach ($files as $file) {
-                if (strstr($file, '.json')) {
-                    $template = file_get_contents($path.$file);
-                    $template = json_decode($template);
-                    $layouts[md5($path.$file)] = array('id' => md5($path.$file), 'path' => Crypt::encrypt($path.$file), 'title' => $template->title, 'preview' => $template->preview);
-                }
+        // Add selected package first if specified
+        if ($selected_id > 0) {
+            $selected = get_post($selected_id);
+            if ($selected && $selected->post_type === 'wpdmpro') {
+                $data[] = array(
+                    'value' => (int)$selected->ID,
+                    'label' => esc_html($selected->post_title)
+                );
             }
         }
 
-        if(file_exists(get_stylesheet_directory()."/gutenberg/layouts/")) {
-            $path = get_stylesheet_directory() . "/gutenberg/layouts/";
-            $files = scandir($path);
-            foreach ($files as $file) {
-                if (strstr($file, '.json')) {
-                    $template = file_get_contents($path.$file);
-                    $template = json_decode($template);
-                    $layouts[md5($path.$file)] = array('id' => md5($path.$file), 'path' => Crypt::encrypt($path.$file), 'title' => $template->title, 'preview' => $template->preview);
+        // Search packages
+        $packs = get_posts(array(
+            'post_type' => 'wpdmpro',
+            's' => $search,
+            'posts_per_page' => 50, // Limit results for performance
+            'post_status' => 'publish',
+        ));
+
+        foreach ($packs as $pack) {
+            // Skip if already added as selected
+            if ($selected_id > 0 && $pack->ID === $selected_id) {
+                continue;
+            }
+            $data[] = array(
+                'value' => (int)$pack->ID,
+                'label' => esc_html($pack->post_title)
+            );
+        }
+
+        wp_send_json($data);
+        die();
+    }
+
+    /**
+     * Get categories/terms for block editor (cached)
+     *
+     * @param \WP_REST_Request $request REST request object
+     */
+    function categories(\WP_REST_Request $request)
+    {
+        $tax = $request->get_param('tax') ?: 'wpdmcategory';
+
+        // Double-check taxonomy is allowed (validation should have caught this)
+        if (!in_array($tax, self::ALLOWED_TAXONOMIES, true)) {
+            $tax = 'wpdmcategory';
+        }
+
+        // Check cache first
+        $cache_key = 'wpdm_gb_categories_' . $tax;
+        $data = get_transient($cache_key);
+
+        if ($data === false) {
+            $cats = get_terms(array(
+                'taxonomy' => $tax,
+                'hide_empty' => false,
+            ));
+
+            $data = array();
+
+            if (!is_wp_error($cats)) {
+                foreach ($cats as $cat) {
+                    $data[] = array(
+                        'value' => sanitize_title($cat->slug),
+                        'id' => (int)$cat->term_id,
+                        'label' => esc_html($cat->name)
+                    );
                 }
             }
+
+            set_transient($cache_key, $data, self::CACHE_TTL_CATEGORIES);
+        }
+
+        wp_send_json($data);
+        die();
+    }
+
+    /**
+     * Get layout files for block editor (cached)
+     */
+    function layouts()
+    {
+        $cache_key = 'wpdm_gb_layouts';
+        $layouts = get_transient($cache_key);
+
+        if ($layouts === false) {
+            $layouts = array();
+
+            // Theme layouts
+            $theme_path = get_template_directory() . "/gutenberg/layouts/";
+            if (is_dir($theme_path)) {
+                $this->scanLayoutDirectory($theme_path, $layouts);
+            }
+
+            // Child theme layouts (if different from parent)
+            if (get_stylesheet_directory() !== get_template_directory()) {
+                $child_path = get_stylesheet_directory() . "/gutenberg/layouts/";
+                if (is_dir($child_path)) {
+                    $this->scanLayoutDirectory($child_path, $layouts);
+                }
+            }
+
+            set_transient($cache_key, $layouts, self::CACHE_TTL_LAYOUTS);
         }
 
         wp_send_json(array_values($layouts));
-
     }
 
+    /**
+     * Scan directory for layout JSON files
+     *
+     * @param string $path Directory path
+     * @param array $layouts Layouts array (passed by reference)
+     */
+    private function scanLayoutDirectory(string $path, array &$layouts): void
+    {
+        $files = scandir($path);
+        foreach ($files as $file) {
+            if (pathinfo($file, PATHINFO_EXTENSION) === 'json') {
+                $file_path = $path . $file;
+                $content = file_get_contents($file_path);
+                $template = json_decode($content);
+
+                if ($template && isset($template->title)) {
+                    $id = md5($file_path);
+                    $layouts[$id] = array(
+                        'id' => $id,
+                        'path' => Crypt::encrypt($file_path),
+                        'title' => sanitize_text_field($template->title),
+                        'preview' => isset($template->preview) ? esc_url($template->preview) : ''
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Get layout content with path validation to prevent path traversal
+     */
     function getlayout(){
         $layout = Crypt::decrypt(wpdm_query_var('layout'));
-        $template = file_get_contents($layout);
+
+        // Validate the decrypted path
+        if (empty($layout)) {
+            wp_send_json_error(['message' => 'Invalid layout parameter'], 400);
+            return;
+        }
+
+        // Resolve the real path (handles symlinks and ../ sequences)
+        $real_path = realpath($layout);
+
+        if ($real_path === false || !file_exists($real_path)) {
+            wp_send_json_error(['message' => 'Layout file not found'], 404);
+            return;
+        }
+
+        // Define allowed directories
+        $allowed_dirs = array(
+            realpath(get_template_directory() . '/gutenberg/layouts'),
+            realpath(get_stylesheet_directory() . '/gutenberg/layouts'),
+        );
+
+        // Remove false values (directories that don't exist)
+        $allowed_dirs = array_filter($allowed_dirs);
+
+        // Check if the file is within an allowed directory
+        $is_allowed = false;
+        foreach ($allowed_dirs as $allowed_dir) {
+            if (strpos($real_path, $allowed_dir) === 0) {
+                $is_allowed = true;
+                break;
+            }
+        }
+
+        if (!$is_allowed) {
+            wp_send_json_error(['message' => 'Access denied'], 403);
+            return;
+        }
+
+        // Ensure file has .json extension
+        if (pathinfo($real_path, PATHINFO_EXTENSION) !== 'json') {
+            wp_send_json_error(['message' => 'Invalid file type'], 400);
+            return;
+        }
+
+        // Read and return the template
+        $template = file_get_contents($real_path);
         $template = json_decode($template);
-        //echo stripslashes_deep(htmlspecialchars_decode(str_replace(array("\n", "\r"), "", $template->content)));
+
+        if ($template === null) {
+            wp_send_json_error(['message' => 'Invalid JSON content'], 400);
+            return;
+        }
+
         wp_send_json($template);
         die();
     }
 
+    /**
+     * DataTable REST API endpoint handler
+     * Uses DataTableQueryTrait for query building and data formatting
+     */
     function dataTable()
     {
-        global $current_user, $post;
-
         $scparams = Crypt::decrypt(wpdm_query_var('_scparams'), true);
 
-        //$defaults = array('author' => '', 'author_name' => '', 'categories' => '', 'xcats' => '', 'items_per_page' => 10, 'title' => false, 'desc' => false, 'order_by' => 'date', 'order' => 'DESC', 'paging' => false, 'page_numbers' => true, 'toolbar' => 1, 'template' => 'link-template-panel', 'cols' => 'title,file_count,download_count|categories|update_date|download_link', 'colheads' => 'Title|Categories|Update Date|Download', 'css_class' => 'wpdm_packages',  'async' => 1);
-        //$scparams = shortcode_atts($defaults, $scparams, 'wpdm_packages');
-	    //wpdmdd($scparams);
-        if (is_array($scparams))
-            extract($scparams);
-
-        if (!isset($items_per_page) || $items_per_page < 1) $items_per_page = 10;
-
-        if (isset($order_by) && !isset($order_field)) $order_field = $order_by;
-        $order_field = isset($order_field) ? $order_field : 'date';
-        $order_field = isset($_GET['orderby']) ? esc_attr($_GET['orderby']) : $order_field;
-        $order = isset($order) ? $order : 'desc';
-        $order = isset($_GET['order']) ? esc_attr($_GET['order']) : $order;
-        $cp = wpdm_query_var('cp', 'num');
-        if (!$cp) $cp = 1;
-
-        $params = array(
-            'post_type' => 'wpdmpro',
-            'paged' => $cp,
-            'posts_per_page' => $items_per_page,
-        );
-
-        if (isset($scparams['s']) && $scparams['s'] != '') $params['s'] = $scparams['s'];
-        if (isset($_GET['skw']) && $_GET['skw'] != '') $scparams['s'] = $params['s'] = wpdm_query_var('skw', 'txt');
-        if (isset($scparams['author']) && $scparams['author'] != '') $params['author'] = $scparams['author'];
-        if (isset($scparams['author_name']) && $scparams['author_name'] != '') $params['author_name'] = $scparams['author_name'];
-        if (isset($scparams['author__not_in']) && $scparams['author__not_in'] != '') $params['author__not_in'] = explode(",", $scparams['author__not_in']);
-        if (isset($scparams['search']) && $scparams['search'] != '') $params['s'] = $scparams['search'];
-        if (isset($scparams['tag']) && $scparams['tag'] != '') $params['tag'] = $scparams['tag'];
-        if (isset($scparams['tag_id']) && $scparams['tag_id'] != '') $params['tag_id'] = $scparams['tag_id'];
-        if (isset($scparams['tag__and']) && $scparams['tag__and'] != '') $params['tag__and'] = explode(",", $scparams['tag__and']);
-        if (isset($scparams['tag__in']) && $scparams['tag__in'] != '') $params['tag__in'] = explode(",", $scparams['tag__in']);
-        if (isset($scparams['tag__not_in']) && $scparams['tag__not_in'] != '') {
-            $params['tag__not_in'] = explode(",", $scparams['tag__not_in']);
-            foreach ($params['tag__not_in'] as &$tg) {
-                if (!is_numeric($tg)) {
-                    $tgg = get_term_by('slug', $tg, 'post_tag');
-                    $tg = $tgg->term_id;
-                }
-            }
+        if (!is_array($scparams)) {
+            $scparams = [];
         }
 
-        if (isset($scparams['post__in']) && $scparams['post__in'] != '') $params['post__in'] = explode(",", $scparams['post__in']);
-        if (isset($scparams['post__not_in']) && $scparams['post__not_in'] != '') $params['post__not_in'] = explode(",", $scparams['post__not_in']);
+        // Build query using trait method
+        $params = $this->buildPackageQuery($scparams);
 
-        if (isset($scparams['tag_slug__and']) && $scparams['tag_slug__and'] != '') $params['tag_slug__and'] = explode(",", $scparams['tag_slug__and']);
-        if (isset($scparams['tag_slug__in']) && $scparams['tag_slug__in'] != '') $params['tag_slug__in'] = explode(",", $scparams['tag_slug__in']);
-        if(wpdm_query_var('category') !== '') {
-            $cat = get_term(wpdm_query_var('category', 'int'), 'wpdmcategory');
-            $scparams['categories'] = is_object($cat) ? $cat->name : '';
-        }
-        if (isset($scparams['categories']) && $scparams['categories'] != '') {
-            $operator = isset($scparams['operator']) ? $scparams['operator'] : 'IN';
-            $scparams['categories'] = trim($scparams['categories'], ",");
-            $__cats = [];
-            $scparams['categories'] = explode(",", $scparams['categories']);
-
-            foreach ($scparams['categories'] as $cat){
-                $_term = get_term_by("slug", $cat, 'wpdmcategory');
-                $__cats[] = $_term->term_id;
-            }
-            $params['tax_query'] = array(array(
-                'taxonomy' => 'wpdmcategory',
-                'field' => 'term_id',
-                'terms' => $__cats,
-                'include_children' => (isset($scparams['include_children']) && $scparams['include_children'] != '') ? $scparams['include_children'] : false,
-                'operator' => $operator
-            ));
-
-        }
-
-        if (isset($scparams['xcats']) && $scparams['xcats'] != '') {
-            $xcats = explode(",", $scparams['xcats']);
-            foreach ($xcats as &$xcat) {
-                if (!is_numeric($xcat) && $xcat !== '') {
-                    $xct = get_term_by('slug', $xcat, 'wpdmcategory');
-                    $xcat = $xct->term_id;
-                }
-            }
-            $params['tax_query'][] = array(
-                'taxonomy' => 'wpdmcategory',
-                'field' => 'term_id',
-                'terms' => $xcats,
-                'operator' => 'NOT IN',
-            );
-        }
-
-        if (isset($params['tax_query']) && count($params['tax_query']) > 1)
-            $params['tax_query']['relation'] = 'AND';
-        else
-            $params['tax_query']['relation'] = 'OR';
-
-
-        if (get_option('_wpdm_hide_all', 0) == 1) {
-            $params['meta_query'] = array(
-                array(
-                    'key' => '__wpdm_access',
-                    'value' => '"guest"',
-                    'compare' => 'LIKE'
-                )
-            );
-            if (is_user_logged_in()) {
-                $params['meta_query'][] = array(
-                    'key' => '__wpdm_access',
-                    'value' => $current_user->roles[0],
-                    'compare' => 'LIKE'
-                );
-                $params['meta_query']['relation'] = 'OR';
-            }
-        }
-
-        if (isset($scparams['year']) || isset($scparams['month']) || isset($scparams['day'])) {
-            $date_query = array();
-
-            if (isset($scparams['day']) && $scparams['day'] == 'today') $scparams['day'] = date('d');
-            if (isset($scparams['year']) && $scparams['year'] == 'this') $scparams['year'] = date('Y');
-            if (isset($scparams['month']) && $scparams['month'] == 'this') $scparams['month'] = date('m');
-            if (isset($scparams['week']) && $scparams['week'] == 'this') $scparams['week'] = date('W');
-
-            if (isset($scparams['year'])) $date_query['year'] = $scparams['year'];
-            if (isset($scparams['month'])) $date_query['month'] = $scparams['month'];
-            if (isset($scparams['week'])) $date_query['week'] = $scparams['week'];
-            if (isset($scparams['day'])) $date_query['day'] = $scparams['day'];
-            $params['date_query'][] = $date_query;
-        }
-
-        $order_fields = array('__wpdm_download_count', '__wpdm_view_count', '__wpdm_package_size_b');
-        if (!in_array("__wpdm_" . $order_field, $order_fields)) {
-            $scparams['orderby'] = $params['orderby'] = $order_field;
-            $scparams['order'] = $params['order'] = $order;
-        } else {
-            $scparams['orderby'] = $order_field;
-            $params['orderby'] = 'meta_value_num';
-            $params['meta_key'] = "__wpdm_" . $order_field;
-            $scparams['order'] = $params['order'] = $order;
-        }
-
-        $params = apply_filters("wpdm_packages_query_params", $params);
-
-		$packs = new \WP_Query($params);
-
+        // Execute query
+        $packs = new \WP_Query($params);
         $total = $packs->found_posts;
 
-        $pages = ceil($total / $items_per_page);
-        $page = isset($_GET['cp']) ? (int)$_GET['cp'] : 1;
-        $start = ($page - 1) * $items_per_page;
+        $items_per_page = isset($scparams['items_per_page']) && $scparams['items_per_page'] > 0
+            ? (int)$scparams['items_per_page']
+            : 10;
 
+        $pages = ceil($total / $items_per_page);
         $all_downloads = $packs->get_posts();
 
-        $colheads =  explode("|", wpdm_valueof($scparams,  'colheads'));
-        $cols =  explode("|", wpdm_valueof($scparams,  'cols'));
+        // Get column configuration
+        $colheads = explode("|", wpdm_valueof($scparams, 'colheads'));
+        $cols = explode("|", wpdm_valueof($scparams, 'cols'));
 
-        $packages = [];
-        foreach ($all_downloads as $download) {
-            $package = [];
-            $author = get_user_by('id', $download->post_author);
-            $download->author_package_count = count_user_posts($download->post_author, "wpdmpro");
-            $download->author_name = $author->display_name;
-            $download->author_pic = get_avatar($author->ID, 32, '', '', ['class' => 'mr-2']);
-            $download_link = WPDM()->package->userCanDownload($download->ID) ? WPDM()->package->downloadLink($download->ID, 0, ['template_type'  =>  'link']) : '<a href="'.get_permalink($download->ID).'" class="btn btn-block btn-danger">Unlock</a>';
-            if(function_exists('wpdmpp_currency_sign') &&  (wpdmpp_effective_price($download->ID) > 0 || (int)get_post_meta($download->ID, '__wpdm_pay_as_you_want',  true) === 1))
-                $download_link = wpdmpp_waytocart((array)$download, 'btn-primary');
-	        $btnstyle = wpdm_download_button_style();
-            foreach ($cols as $col_index => $data_field_pack) {
-                $data_field_parts = explode(",", $data_field_pack);
-                foreach ($data_field_parts  as $part_index => $data_field) {
-                    $xclass = ($part_index > 0)?'small-txt':'';
-                    switch ($data_field) {
-                        case 'thumb':
-                            $package[$data_field] = "<a href='".get_permalink($download->ID)."'>" . wpdm_thumb($download, [96,96], false, ['crop' => true, 'class' =>  'datatable-thumb']) . "</a>";
-                            break;
-                        case 'icon':
-                            $package[$data_field] = "<a href='".get_permalink($download->ID)."'>" . WPDM()->package->icon($download->ID,  true, 'datatable-icon') . "</a>";
-                            break;
-                        case 'title':
-                            $package[$data_field] = "<strong class='d-block'>" . $download->post_title . "</strong>";
-                            break;
-                        case 'page_link':
-                            $package[$data_field] = "<a class=\"package-title d-block\" href='" . get_the_permalink($download->ID) . "'>" . $download->post_title . "</a>";
-                            break;
-                        case 'excerpt':
-                        case (preg_match('/excerpt_.+/', $data_field) ? true : false) :
-                            $xcol = explode("_", $data_field);
-                            $len = isset($xcol[1]) ? $xcol[1] : false;
-                            $cont = strip_tags($download->post_content);
+        // Format package data using trait method
+        $packages = $this->formatPackageData($all_downloads, $cols, $colheads);
 
-                            if (!$len)
-                                $package[$data_field] = "<div class='__dt_excerpt {$xclass}'>" . get_the_excerpt() . "</div>";
-                            else {
-                                $excerpt = strlen($cont) > $len ? substr($cont, 0, strpos($cont, ' ', $len)) : $cont;
-                                $package[$data_field] = "<div class='__dt_excerpt {$xclass}'>" . $excerpt . "</div>";
-                            }
-                            break;
-                        case 'file_count':
-                            $file_count  = WPDM()->package->fileCount($download->ID);
-                            if ($part_index > 0)
-                                $package[$data_field] = "<span class='__dt_file_count {$xclass}'><i class=\"far fa-copy\"></i> " . $file_count . " " . __('file(s)', 'download-manager') . "</span>";
-                            else
-                                $package[$data_field] = "<span class=\"hidden-md hidden-lg td-mobile\">{$colheads[$col_index]}: </span><span class='__dt_file_count {$xclass}'>" . $file_count . "</span>";
-                            break;
-                        case 'download_count':
-                            $download_count = (int)get_post_meta($download->ID, '__wpdm_download_count', true);
-                            if ($part_index > 0)
-                                $package[$data_field] = "<span class='__dt_download_count {$xclass}'><i class=\"far fa-arrow-alt-circle-down\"></i> " . $download_count . " " . ($download_count > 1 ? __('downloads', 'download-manager') : __('download', 'download-manager')) . "</span>";
-                            else
-                                $package[$data_field] = "<span class=\"hidden-md hidden-lg td-mobile\">{$colheads[$col_index]}: </span><span class='__dt_download_count {$xclass}'>{$download_count}</span>";
-                            break;
-                        case 'view_count':
-                            $view_count = (int)get_post_meta($download->ID, '__wpdm_view_count', true);
-                            if ($part_index > 0)
-                                $package[$data_field] = "<span class='__dt_view_count {$xclass}'><i class=\"fa fa-eye\"></i> " . ($view_count ? $view_count : 0) . " " . ($view_count > 1 ? __('views', 'download-manager') : __('view', 'download-manager')) . "</span>";
-                            else
-                                $package[$data_field] = "<span class=\"hidden-md hidden-lg td-mobile\">{$colheads[$col_index]}: </span><span class='__dt_view_count'>{$view_count}</span>";
-                            break;
-                        case 'categories':
-                            $cats = wp_get_post_terms($download->ID, 'wpdmcategory');
-                            $fcats = array();
-                            foreach($cats as $cat){
-                                $fcats[] = "<a class='sbyc' href='#'>{$cat->name}</a>";
-                            }
-                            $cats = @implode(", ", $fcats);
-                            $package[$data_field] = "<span class='__dt_categories {$xclass}'>" . $cats . "</span>";
-                            break;
-                        case 'tags':
-                            $cats = wp_get_post_terms($download->ID, 'wpdmtag');
-                            $fcats = array();
-                            foreach($cats as $cat){
-                                $fcats[] = "<a class='sbyc' href='#'>{$cat->name}</a>";
-                            }
-                            $cats = @implode(", ", $fcats);
-                            $package[$data_field] = "<span class='__dt_tags {$xclass}'>" . $cats . "</span>";
-                            break;
-                        case 'update_date':
-                            $package[$data_field] = "<span class='__dt_update_date {$xclass}'>" . get_the_modified_date('', $download->ID) . "</span>";
-                            break;
-                        case 'date':
-                        case 'publish_date':
-                            $package[$data_field] = "<span class='__dt_publish_date {$xclass}'>" . get_the_date(get_option('date_format'), $download) . "</span>";
-                            break;
-                        case 'download_link':
-                            $package[$data_field] = $download_link ? $download_link : '<button type="button" disabled="disabled" class="btn btn-danger">' . WPDM()->package->getLinkLabel($download->ID) . '</button>';
-                            break;
-                        case 'details_link':
-                            $package[$data_field] = '<a href="'.get_permalink($download->ID).'" class="'.$btnstyle.'">' . WPDM()->package->getLinkLabel($download->ID) . '</a>';
-                            break;
-                        case 'audio_player':
-                            $data['files'] = WPDM()->package->getFiles($download->ID);
-                            $package[$data_field] = WPDM()->package->audioPlayer($data, true, 'success');
-                            break;
-                        default:
-                            if (isset($download->$data_field)) {
-                                    $field_data = $download->$data_field;
-                            } else {
-                                $field_data = get_post_meta($download->ID, '__wpdm_'.$data_field, true);
-                            }
-                            if ($part_index > 0) {
-                                $package[$data_field] = "<span class='__dt_{$data_field} {$xclass}'>" . $field_data . "</span>";
-                            } else {
-                                $package[$data_field] = $field_data;
-                            }
-                            break;
-                    }
-                }
-                if(count($data_field_parts) > 1) {
-                    $package[str_replace(",", "__", $data_field_pack)] = "";
-                    foreach ($data_field_parts as $data_field_part) {
-                        $package[str_replace(",", "__", $data_field_pack)] .= $package[$data_field_part];
-                    }
-                }
-            }
-            $packages[] = $package;
-        }
-        wp_send_json(['packages' => $packages, 'pages' => $pages, '_scparams' => Crypt::encrypt($scparams), 'total' => $total, 'params' => $params]);
+        wp_send_json([
+            'packages' => $packages,
+            'pages' => $pages,
+            '_scparams' => Crypt::encrypt($scparams),
+            'total' => $total,
+            'params' => $params
+        ]);
         die();
     }
 

@@ -62,7 +62,7 @@ class Search{
             return "<section class='__wpdm_gb_section __wpdm_gb_packages'>".WPDM()->package->shortCodes->searchResult($attributes)."</section>";
         }
         else
-            return Messages::info("Block is available with the pro version only!",  -1);
+            return "<div class='w3eden'><div class='alert alert-info'>Block is available with the pro version only!</div></div>";
     }
 
 }

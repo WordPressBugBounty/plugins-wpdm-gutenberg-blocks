@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/section",
+  "version": "3.0.0",
+  "title": "Section",
+  "category": "wpdm-blocks",
+  "description": "Create a styled section with customizable background colors and images.",
+  "keywords": [
+    "section",
+    "container",
+    "wrapper",
+    "background",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "wideContent": {
+      "type": "boolean",
+      "default": false
+    },
+    "sectionBG": {
+      "type": "string",
+      "default": "#E9ECEF"
+    },
+    "sectionBGx": {
+      "type": "string",
+      "default": "#E9ECEF"
+    },
+    "sectionBGAlpha": {
+      "type": "number",
+      "default": 95
+    },
+    "bgCS1": {
+      "type": "number",
+      "default": 0
+    },
+    "bgCS2": {
+      "type": "number",
+      "default": 100
+    },
+    "gradAngle": {
+      "type": "number",
+      "default": 45
+    },
+    "sectionBGImage": {
+      "type": "string",
+      "default": null
+    },
+    "sectionBGSize": {
+      "type": "string",
+      "default": "bg-cover"
+    },
+    "sectionBGRepeat": {
+      "type": "string",
+      "default": "bg-no-repeat"
+    },
+    "sectionBGImageID": {
+      "type": "string",
+      "default": null
+    }
+  }
+}

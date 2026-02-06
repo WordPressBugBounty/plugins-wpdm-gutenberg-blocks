@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/dropzone",
+  "version": "3.0.0",
+  "title": "DropZone",
+  "category": "wpdm-blocks",
+  "description": "Allow users to share files with site admin through a drag-and-drop interface.",
+  "keywords": [
+    "download",
+    "dropzone",
+    "upload",
+    "share",
+    "files",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "logo": {
+      "type": "string",
+      "default": ""
+    },
+    "note_before": {
+      "type": "string",
+      "default": ""
+    },
+    "note_after": {
+      "type": "string",
+      "default": ""
+    },
+    "regurl": {
+      "type": "string",
+      "default": ""
+    }
+  }
+}

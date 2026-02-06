@@ -1,0 +1,48 @@
+{
+  "name": "wpdm-gutenberg-blocks",
+  "version": "3.0.1",
+  "description": "Editor Blocks for WordPress Download Manager",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "lint:pkg-json": "wp-scripts lint-pkg-json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/developer-developer/wpdm-gutenberg-blocks"
+  },
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "blocks",
+    "download-manager",
+    "wpdm"
+  ],
+  "author": "WordPress Download Manager",
+  "license": "GPL-2.0-or-later",
+  "bugs": {
+    "url": "https://www.wpdownloadmanager.com/support/"
+  },
+  "homepage": "https://www.wpdownloadmanager.com/download/gutenberg-blocks/",
+  "devDependencies": {
+    "@wordpress/scripts": "^30.0.0",
+    "css-loader": "^6.11.0",
+    "ignore-emit-webpack-plugin": "^2.0.6",
+    "mini-css-extract-plugin": "^2.9.0",
+    "postcss-loader": "^8.1.1",
+    "postcss-preset-env": "^9.5.0",
+    "sass-loader": "^14.2.0"
+  },
+  "dependencies": {
+    "react-select": "^5.8.0",
+    "react-sortablejs": "^6.1.4",
+    "sortablejs": "^1.15.2"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}

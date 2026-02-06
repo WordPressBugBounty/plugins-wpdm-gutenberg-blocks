@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/search",
+  "version": "3.0.0",
+  "title": "Search Results",
+  "category": "wpdm-blocks",
+  "description": "Display search results for Download Manager packages.",
+  "keywords": [
+    "download",
+    "search",
+    "results",
+    "find",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "init": {
+      "type": "boolean",
+      "default": true
+    },
+    "items_per_page": {
+      "type": "integer",
+      "default": 10
+    },
+    "cols": {
+      "type": "integer",
+      "default": 1
+    },
+    "colspad": {
+      "type": "integer",
+      "default": 1
+    },
+    "colsphone": {
+      "type": "integer",
+      "default": 1
+    },
+    "template": {
+      "type": "string",
+      "default": "link-template-panel"
+    }
+  }
+}

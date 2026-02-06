@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/dashboard",
+  "version": "3.0.0",
+  "title": "Dashboard",
+  "category": "wpdm-blocks",
+  "description": "Display the Download Manager user dashboard with downloads and favorites.",
+  "keywords": [
+    "download",
+    "dashboard",
+    "user",
+    "account",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true
+  },
+  "attributes": {
+    "logo": {
+      "type": "string",
+      "default": ""
+    },
+    "recommended": {
+      "type": "string",
+      "default": "recent"
+    },
+    "fav": {
+      "type": "integer",
+      "default": 1
+    },
+    "note_before": {
+      "type": "string",
+      "default": ""
+    },
+    "note_after": {
+      "type": "string",
+      "default": ""
+    },
+    "regurl": {
+      "type": "string",
+      "default": ""
+    },
+    "redirect": {
+      "type": "string",
+      "default": ""
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "download-manager/category-blocks",
+  "version": "3.0.0",
+  "title": "Category Cards",
+  "category": "wpdm-blocks",
+  "description": "Display Download Manager categories as visual cards.",
+  "keywords": [
+    "download",
+    "category",
+    "cards",
+    "grid",
+    "wpdm"
+  ],
+  "textdomain": "wpdm-gblocks",
+  "supports": {
+    "html": false,
+    "className": true,
+    "customClassName": true,
+    "color": {
+      "background": false,
+      "text": false
+    }
+  },
+  "attributes": {
+    "cats": {
+      "type": "string",
+      "default": ""
+    },
+    "cols": {
+      "type": "string",
+      "default": "3"
+    },
+    "button_color": {
+      "type": "string",
+      "default": "rgb(0, 115, 255)"
+    },
+    "border_color": {
+      "type": "string",
+      "default": "rgb(0, 115, 255)"
+    },
+    "hover_color": {
+      "type": "string",
+      "default": "rgb(0, 115, 255)"
+    },
+    "template": {
+      "type": "string",
+      "default": ""
+    }
+  }
+}
