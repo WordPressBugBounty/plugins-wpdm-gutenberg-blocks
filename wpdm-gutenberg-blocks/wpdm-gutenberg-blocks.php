@@ -4,7 +4,7 @@
  * Plugin URI: https://www.wpdownloadmanager.com/download/gutenberg-blocks/
  * Description: Editor Blocks for Download Manager
  * Author: WordPress Download Manager
- * Version:  3.0.1
+ * Version:  3.0.2
  * Author URI: https://www.wpdownloadmanager.com/
  * Text Domain: wpdm-gblocks
  * Domain Path: /languages
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('WPDM_GB_VERSION', '3.0.1');
+define('WPDM_GB_VERSION', '3.0.2');
 define('__WPDM_GB__', __FILE__);
 define('__WPDM_GBDIR__', __DIR__);
 define('__WPDM_GBURL__', plugins_url('/', __FILE__));

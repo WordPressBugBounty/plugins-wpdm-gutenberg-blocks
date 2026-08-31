@@ -3,7 +3,7 @@ Contributors: w3eden, codename065, shahriar0822, shimo16ab, shafayat-alam
 Donate link:
 Tags: gutenberg, blocks, gutenberg blocks, document management plugin, download manager, file manager, download protection
 Requires at least: 5
-Tested up to: 6.8
+Tested up to: 7.1
 License: GPLv2 or later
 
 
@@ -37,6 +37,9 @@ Please install [Attire Blocks](https://wordpress.org/plugins/attire-blocks/) for
 
 
 == Changelog ==
+
+= 3.0.2 - 2026.08.31 =
+✅ Compatibility update for WordPress 7.1
 
 = 3.0.1 - 2026.01.26 =
 🐞 Fixed REST API validation error for "login" attribute in datatable and packages blocks
